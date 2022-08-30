@@ -78,8 +78,8 @@ class HTML2Docx(HTMLParser):
 
         # Formatting options
         self.pre = False
-        self.table_cell: Optional[_Cell] = None
-        self.tables: List[Table[Any, int, int]] = []
+        self.table_cell: Optional[Any] = None
+        self.tables: List[Tuple[Any, int, int]] = []
         self.alignment: Optional[int] = None
         self.padding_left: Optional[Pt] = None
         self.attrs: List[List[Tuple[str, Any]]] = []
@@ -104,8 +104,10 @@ class HTML2Docx(HTMLParser):
         self._reset()
 
     def init_table(self, attrs: List[Tuple[str, Optional[str]]]) -> None:
-        container = self.doc if self.table_cell is None else self.table_cell
-        table = container.add_table(rows=0, cols=0)
+        if self.table_cell is not None:
+            table = self.table_cell.add_table(rows=0, cols=0)
+        else:
+            table = self.doc.add_table(rows=0, cols=0)
         self.tables.append((table, -1, -1))
 
     def finish_table(self) -> None:
@@ -129,7 +131,6 @@ class HTML2Docx(HTMLParser):
         self.tables[-1] = (table, row, col)
         if col >= len(table.columns):
             table.add_column(0)
-
         self.table_cell = table.cell(row, col)
         self.p = self.table_cell.paragraphs[0]
         self.r = None
